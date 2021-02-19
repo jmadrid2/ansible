@@ -1,7 +1,7 @@
 ---
 
   - name: Check BGP neighbors in Idle State
-    hosts: fsps01-01.net.cfn001.cust.ash.wd
+    hosts: testhost
     connection: local
     gather_facts: no
 
