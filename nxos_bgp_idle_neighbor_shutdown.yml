@@ -1,7 +1,7 @@
 ---
 
   - name: Check BGP neighbors in Idle State
-    hosts: fls
+    hosts: testhost
     connection: local
     gather_facts: no
 
