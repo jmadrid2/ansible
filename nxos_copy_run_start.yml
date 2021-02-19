@@ -1,7 +1,7 @@
 ---
 
   - name: Saving Running-Config to Startup-Config
-    hosts: [ bls fsps fls ]
+    hosts: testhost
     connection: local
     gather_facts: no
 
