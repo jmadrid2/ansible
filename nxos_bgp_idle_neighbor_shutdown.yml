@@ -1,0 +1,49 @@
+---
+
+  - name: Check BGP neighbors in Idle State
+    hosts: fls
+    connection: local
+    gather_facts: no
+
+    vars_files:
+      - "vault.yml"
+      
+    vars:
+      nxos_provider:
+        username: "{{ prod_username }}"
+        password: "{{ prod_ldap }}"
+        transport: cli
+        host: "{{ ansible_host }}"
+
+    tasks:
+      - name: Check for BGP Neighbors in Idle State
+        nxos_command:
+          provider: "{{ nxos_provider }}"
+          commands:
+            - show ip bgp summary | i Idle | awk '{print $1}'
+            - show run | i "router bgp" | awk '{print $3}'
+        register: output
+
+      - name: Print List of Idle Neighbors
+        debug: 
+          var: output['stdout_lines'][0]
+
+      - set_fact:
+          bgpneighbors: "{{ output['stdout_lines'][0] }}"
+          asn:   "{{ output['stdout_lines'][1] }}"
+
+      - name: Shut Down BGP Neighbors
+        with_nested: 
+          -  "{{ bgpneighbors }}"          
+          -  "{{ asn }}"          
+        nxos_bgp_neighbor:
+          provider: "{{ nxos_provider }}"
+          asn: '{{ item.1 }}'
+          neighbor: '{{ item.0 }}'
+          shutdown: true
+          state: present
+
+      - name: Save Running-Config To Startup-Config
+        nxos_config:
+          save_when: always
+          provider: "{{ nxos_provider }}"

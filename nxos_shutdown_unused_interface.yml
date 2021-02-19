@@ -1,0 +1,36 @@
+---
+
+  - name: Check BGP neighbors in Idle State
+    hosts: fls
+    connection: local
+    gather_facts: no
+
+    vars:
+      nxos_provider:
+        username: "jose.madrid"
+        password: "Wduuv)hPt*g2"
+        transport: cli
+        host: "{{ ansible_host }}"
+
+    tasks:
+      - name: Check for Interfaces That Are Currently Down
+        nxos_command:
+          provider: "{{ nxos_provider }}"
+          commands:
+            - sh int brief | in down | i Eth | awk '{print $1}'
+        register: output
+
+      - name: Print List of Down Interfaces
+        debug: 
+          var: output
+      - set_fact:
+          downinterfaces: "{{ output['stdout_lines'] }}"
+             
+      - name: Merge provided configuration with device configuration
+        nxos_interfaces:
+          provider: "{{ nxos_provider }}"        
+          config:
+            - name: Ethernet1/7
+              enabled: False
+          state: merged
+          
