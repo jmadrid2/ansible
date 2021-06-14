@@ -1,0 +1,30 @@
+---
+
+  - name: Check BGP neighbors in Idle State
+    hosts: all
+    connection: local
+    gather_facts: no
+
+    vars_files:
+      - "vault.yml"
+      
+    vars:
+      nxos_provider:
+        username: "{{ username }}"
+        password: "{{ password }}"
+        transport: cli
+        host: "{{ ansible_host }}"
+
+    tasks:
+      - name: Check for BGP Neighbors in Idle State
+        nxos_command:
+          provider: "{{ nxos_provider }}"
+          commands:
+            - show ip bgp summary | i Idle | awk '{print $1}'
+            - show run | i "router bgp" | awk '{print $3}'
+        register: output
+
+      - name: Print List of Idle Neighbors
+        debug: 
+          var: output['stdout_lines'][0]
+
